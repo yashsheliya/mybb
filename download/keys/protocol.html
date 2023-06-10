@@ -1,0 +1,165 @@
+---
+layout: default
+section: download
+
+title: MyBB Signing Keys Protocol
+description: The procedure used for signing official releases.
+meta_description: The procedure used for signing official releases.
+
+---
+
+<section class="block block--markdown">
+{% capture markdown %}
+
+Team members of at least 90 days, familiar with PGP basics and related safety practices, who own a Team Member Key are permitted to participate in the MyBB Signing Key process. The eligibility is assessed in internal interviews conducted by [Security Role](https://mybb.com/about/team/#role-security) members.
+
+The Protocol allows to mitigate the following risks related to end user packages:
+ - forged or modified packages by third parties after gaining control of MyBB-managed platforms or intercepting requests from end users,
+ - legitimate packages swapped with ones containing unauthorized modifications as a result of a man-in-the-middle attack or checksum collision attack.
+
+# Definitions
+
+- **Team Member Keys**
+
+  Personal keys owned by Team members and listed on the official [About the Team](https://mybb.com/about/team/) page.
+
+- **MyBB Signing Keys**
+
+  Official keys used to sign software packages.
+
+  Each active MyBB Signing Key, at any given time:
+  - is signed with the owner's current Team Member Key,
+  - has the owner's current Team Member Key set as a designated revoker,
+  - is signed by at least one Role Leader, other than the owner, with their current Team Member Key (authorization),
+  - has at least one Role Leader's current Team Member Key, other than the owner's, set as a designated revoker.
+
+  The Keys are updated with new, valid values when authorization/revocation continuity is broken (e.g. as a result of personnel changes).
+
+- **Announcement Channels**
+
+  Reputable third-party recordkeeping solutions allowing to independently establish dates of protocol events:
+
+  - [`@mybbsecurity` Twitter feed](https://twitter.com/mybbsecurity), maintained by Team members handling security issues.
+
+- **Archiving Services**
+
+  Reputable third-party archiving services providing snapshots of MyBB Signing Key listings:
+
+  - [web.archive.org](https://web.archive.org/)
+
+# Software Setup
+
+[GnuPG](https://www.gnupg.org/) is used for key and signature management &mdash; it is recommended to use version 2.1 or higher.
+
+Before following any step of the Protocol, the GnuPG configuration file (`~/.gnupg/gpg.conf` &mdash; the location can be checked with `gpg --version`) should be updated to prioritize strong algorithms:
+```
+personal-digest-preferences SHA512
+cert-digest-algo SHA512
+default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+```
+
+# Key Management
+
+#### Creating MyBB Signing Keys
+1. Create a 4096-bit _RSA (sign only)_ key with _Real name_ set to your Community Forums name, _Email address_ to your `*@mybb.com` e-mail address, and _Comment_ to `CODE SIGNING KEY`. These details must match exactly.
+
+   ```
+   gpg --full-gen-key
+   ```
+
+   (`gpg --gen-key` on older versions)
+
+2. Sign the created key with your Team Member Key.
+
+   ```
+   gpg -u TEAM-MEMBER-KEY-ID --sign-key MYBB-KEY-ID
+   ```
+
+3. Add [designated revokers](#definitions) (their public keys need to present in the keyring).
+
+   ```
+   gpg --edit-key MYBB-KEY-ID
+   ```
+   ```
+   > addrevoker
+   ```
+
+    Provide the revoker's Team Member Key fingerprint when prompted and save:
+
+   ```
+   > save
+   ```
+
+4. Export the signed public key with metadata:
+
+   ```
+   (gpg --fingerprint --list-sigs MYBB-KEY-ID && gpg --armor --export MYBB-KEY-ID) > MYBB-KEY-ID.TEAM-MEMBER-KEY-ID.asc
+   ```
+
+   and post it internally for further processing.
+
+#### Adding MyBB Signing Keys
+1. Verify the key's correctness (e.g. using [pgpdump](https://www.mew.org/~kazu/proj/pgpdump/en/)) and that it's correctly signed and contains necessary [designated revokers](#definitions).
+1. Have the key signed according to _MyBB Signing Keys_.
+
+   ```
+   gpg -u TEAM-MEMBER-KEY-ID --sign-key MYBB-KEY-ID
+   ```
+
+2. Add the key block with included signatures to [mybb.com/download/keys/](https://mybb.com/download/keys/), denoting key owner's username, full key fingerprint and date.
+3. Trigger Archiving Services to save the new version of the MyBB Signing Keys listing and the key's details page.
+4. Announce the addition on Announcement Channels in the following format, denoting the full fingerprint:
+
+   ```
+   Adding MyBB Signing Key FEED DEAF ABBA BEAD BABE FACE DEAD BEEF CEDE CAFE.
+   ```
+
+The key can be used to sign packages after 14 days have passed since it was added to the website and announced on Announcement Channels.
+
+#### Removing MyBB Signing Keys
+1. Have the key revoked as a [designated revoker](#definitions) and import the revocation certificate into `gpg`.
+
+   ```
+   gpg --desig-revoke MYBB-KEY-ID | gpg --import
+   ```
+
+2. Export the revoked key with associated data:
+
+   ```
+   (gpg --fingerprint --list-sigs MYBB-KEY-ID && gpg --armor --export MYBB-KEY-ID) > MYBB-KEY-ID.revoked.asc
+   ```
+
+4. Update the key block on the [mybb.com/download/keys/](https://mybb.com/download/keys/) list to contain the revoked signature, denoting the removal date.
+3. Trigger Archiving Services to save the new version of the MyBB Signing Keys listing and the key's details page.
+4. Announce the removal on Announcement Channels in the following format, denoting the full fingerprint:
+
+   ```
+   Removing MyBB Signing Key FEED DEAF ABBA BEAD BABE FACE DEAD BEEF CEDE CAFE.
+   ```
+
+# Package Signing
+
+1. #### Individual signing
+   If any issues have been found, do not proceed and report them internally.
+
+   1. Check for alerts, announcements and notices related to Project's security and the current release process &mdash; do not proceed unless release-related issues have been resolved.
+   2. Build the package(s) from the source using supplied patches and metadata.
+   3. Assure that the internal candidate package(s) and the one(s) generated are identical (full file content comparison).
+   4. Check Announcement Channels for announcements related to your signing key.
+   5. Make a detached signature of the package(s) using a valid MyBB Signing Key with SHA-512 as the digest algorithm:
+
+      ```
+      gpg -u MYBB-KEY-ID --armor --output package.zip.asc --digest-algo sha512 --no-version --detach-sign package.zip
+      ```
+
+      and post it internally.
+
+2. #### Release
+   1. #### Signature verification
+      Provided signatures are verified to assure correctness.
+   2. #### Signature publication
+       All signatures are distributed with the package(s). Whenever signatures are added, removed or updated, Archiving Services are triggered to save the new version of the package(s) signature listing.
+
+{% endcapture %}
+{{ markdown | markdownify }}
+</section>

@@ -1,0 +1,117 @@
+---
+title:  "Versions"
+layout: default
+section: download
+categories: [versions]
+description: Here you will find a description of the MyBB versioning scheme and release cycle as well as a listing of all MyBB versions released to date.
+---
+
+    <div class="page-sidebar">
+        <section class="block">
+            <h1 class="block__heading">Versioning System</h1>
+            <p>MyBB uses a 3-number versioning system, <code>MAJOR.MINOR.PATCH</code>.</p>
+            <p>The first &mdash; <i>major</i> &mdash; number is incremented when there is a significant change in MyBB's features, behavior, and compatibility.</p>
+            <p>The second &mdash; <i>minor</i> &mdash; number indicates new features and potential breaking changes for extensions.</p>
+            <p>The third &mdash; <i>patch</i> &mdash; number is incremented every time a security or maintenance update is released. These releases usually will not contain new features, but can be crucial to the security and stability of your forum.</p>
+            <hr>
+            <p>Whatever the version number is, MyBB always urges users to upgrade to the latest version for the highest security of MyBB installations. Even minor patches that seem insignificant could protect from potentially critical security vulnerabilities.</p>
+        </section>
+        <section class="block">
+            <h1 class="block__heading">Release Cycle</h1>
+
+            <h3 class="block__section__title">Series Releases</h3>
+            <p>New series increment the <i>major</i> or <i>minor</i> version number. Usually these will have new features and changes to the database schema, and therefore may break existing forum customizations, such as themes and plugins. They may also contain security vulnerability patches and bug fixes.
+            <p>In the past, they were called <i>major releases</i>, and odd minor numbers indicated development-only releases.</p>
+
+            <h3 class="block__section__title">Patch Releases</h3>
+            <p>The most common <i>patch</i> releases introduce small enhancements, and are produced in response to bug reports and security problems. Customizations (plugins, themes, etc.) generally are compatible across releases within given series.</p>
+            <p>Security Releases appear to fix any known security holes. Upgrading should be completed as soon as possible, otherwise forum security could be compromised.</p>
+            <p>Maintenance Releases fix bugs and contain other stability or performance improvements. Upgrading is not as immediately necessary with simple maintenance releases as it is with security releases, but it is recommended and encouraged to upgrade as soon as it is convenient.</p>
+        </section>
+        <section class="block">
+            <h1 class="block__heading">Release Insights</h1>
+            <p>Compare the development cycle length and resolved issue numbers in MyBB releases.
+            <p class="block__action"><a href="{{ site.baseurl }}/versions/insights/" class="button button--secondary">{% include icon.html icon='chart-bar' %}Release Insights</a></p>
+        </section>
+        <section class="block">
+            <h1 class="block__heading">Resolved Security Issues</h1>
+            <p>View a list of vulnerabilities addressed in the past.
+            <p class="block__action"><a href="{{ site.baseurl }}/versions/security-issues/" class="button button--secondary">{% include icon.html icon='chart-bar' %}Resolved Security Issues</a></p>
+        </section>
+    </div>
+    <div class="page-content page-content--sidebar">
+        <section class="block">
+            <header class="block__heading">
+                <h1 class="block__heading__title">Version List</h1>
+            </header>
+            <p>The following is a list of official (public and private) releases of MyBB. Download links for previous versions are provided on this page for older versions for non-production site usage (i.e. porting old modifications, converting to MyBB, and historical curiosity). <strong>All administrators are strongly encouraged to use the latest release of MyBB on production forums.</strong></p>
+        </section>
+        <section class="block">
+            <header class="block__heading">
+                <h1 class="block__heading__title">1.8.x series</h1>
+            </header>
+            <div class="version-list">
+                {% assign versions_sorted = site.versions | sort: 'release_date' | reverse %}
+                {% assign counter = 1 %}
+                {% for version in versions_sorted %}
+                    {% if version.version_number contains '1.8.' and version.release_date != '' %}
+                        {% capture type %}{% include releases/release_type.html version = version %}{% endcapture %}
+                        <div class="version-list__item">
+                            <div class="version-list__item__details">
+                                <h2 class="version-list__item__number"><a href="{{ version.version_number }}/" class="version-list__number__link">{{ version.version_number }}</a></h2>
+                                <p class="version-list__item__date">{{ version.release_date | date: '%e %B %Y' }}</p>
+                                {% if counter == 1 %}<p class="version-list__item__latest">Latest Release</p>{% endif %}
+                                <p class="version-list__item__type">{{ type }} Release</p>
+                            </div>
+                            <p class="version-list__item__download"><a href="{{ site.baseurl }}/versions/{{ version.version_number }}/" class="button{% if counter > 1 %} button--secondary{% endif %} version-list__item__download__link">Download</a></p>
+                        </div>
+                        {% assign counter = counter | plus: 1 %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        <section class="block">
+            <div class="version-list-eol-note">
+                {% include icon.html icon='exclamation-triangle' %}
+                <p><strong>Series prior to MyBB 1.8.x are no longer supported</strong></p>
+                {% if eol.text %}
+                    <p>{{ eol.text | markdownify }}</p>
+                {% endif %}
+                <p>
+                    This means there will be no more security or maintenance releases for these series and forums running these versions of MyBB may be at risk of unfixed security issues. <strong>All administrators are strongly encouraged to upgrade their forums to the latest release of MyBB as soon as possible.</strong>
+                </p>
+            </div>
+        </section>
+        {% for series in site.data.legacy_versions %}
+        <section class="block">
+            <header class="block__heading">
+                <h1 class="block__heading__title">{{ series.series }}</h1>
+            </header>
+            <div class="version-list">
+                {% for version in series.versions %}
+                <div class="version-list__item">
+                    <div class="version-list__item__details">
+                        <h2 class="version-list__item__number">
+                            {% if version.release_notes %}
+                                {% if version.release_notes != 'none' %}
+                                    <a href="{{ version.release_notes }}" class="version-list__number__link">{{ version.version }}</a>
+                                {% else %}
+                                    {{ version.version }}
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ site.baseurl }}/versions/{{ version.version }}/" class="version-list__number__link">{{ version.version }}</a>
+                            {% endif %}
+                        </h2>
+                        <p class="version-list__item__date">{{ version.date }}</p>
+                        <p class="version-list__item__type">{{ version.type }}</p>
+                    </div>
+                    {% unless version.release_notes %}
+                        <p class="version-list__item__download"><a href="{{ site.baseurl }}/versions/{{ version.version }}/" class="button{% if counter > 1 %} button--secondary{% endif %} version-list__item__download__link">Download</a></p>
+                    {% endunless %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+</div>

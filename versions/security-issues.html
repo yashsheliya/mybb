@@ -1,0 +1,84 @@
+---
+title:  "Resolved Security Issues"
+layout: default
+section: download
+categories: [versions]
+description: Here you will find documented security issues addressed in past MyBB releases. Please note that the list may not include details of vulnerabilities in legacy branches. View <a href="/get-involved/security/">Security Research</a> to learn more or report security-related problems.
+---
+
+<div class="page-content">
+    <table class="standard-table">
+        <thead>
+            <tr>
+                <th>Version Addressed</th>
+                <th>Severity</th>
+                <th>Description, References, Classification</th>
+                <th style="width: 20%;">Reported By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% assign versions_sorted = site.versions | sort: 'release_date' | reverse %}
+            {% for version in versions_sorted %}
+                {% capture type %}{% include releases/release_type.html version = version %}{% endcapture %}
+                {% assign count = 1 %}
+                {% for issue in version.resolved_security_issues %}
+                    <tr>
+                        {% if count == 1 %}
+                            <td rowspan="{{ version.resolved_security_issues | size }}">
+                                <p><a href="/versions/{{ version.version_number }}/"><strong>{{ version.version_number }}</strong></a>
+                                <p><small>{{ version.release_date | date: '%e %B %Y' }}</small>
+                            </td>
+                        {% endif %}
+                        <td>
+                            {{ issue.severity | capitalize }}
+                        </td>
+                        <td>
+                            {{ issue.description }}
+                            {% if issue.references %}
+                                {% for ref in issue.references %}
+                                    <small><a href="{{ ref.url | escape_once }}"{% if ref.title %} title="{{ ref.title | escape_once }}"{% endif %}>[{{ forloop.index }}]</a></small>
+                                {% endfor %}
+                            {% endif %}
+                            <p class="security-issues__issue__details">
+                                <small>
+                                    {% if issue.cwe_id %}
+                                        <span class="security-issues__issue__details__item">
+                                            <a href="https://cwe.mitre.org/data/definitions/{{ issue.cwe_id | replace: 'CWE-', '' }}.html" title="{{ issue.cwe_name }}{% if issue.cwe_type %}, {{ issue.cwe_type }}{% endif %}" class="nowrap">{{ issue.cwe_id }}</a>
+                                        </span>
+                                    {% endif %}
+                                    {% if issue.cvss_score %}
+                                        <span class="security-issues__issue__details__item">
+                                            <code title="CVSS score">{{ issue.cvss_score }}</code>
+                                        </span>
+                                    {% endif %}
+                                    {% if issue.cve_id %}
+                                        <span class="security-issues__issue__details__item">
+                                            <span title="CVE ID">{{ issue.cve_id }}</span>
+                                        </span>
+                                    {% endif %}
+                                </small>
+                            </p>
+                        </td>
+                        <td>
+                            {% if issue.reported_by != null %}
+                                    {% assign reported_by = "" %}
+                                    {% for reporter in issue.reported_by %}
+                                        {% assign string = reporter.name | markdownify | replace: '<p>', '' | replace: '</p>', '' %}
+                                        {% if reporter.affiliation %}
+                                            {% assign string = string | append: '(' | append: reporter.affiliation | append: ')' | markdownify | replace: '<p>', '' | replace: '</p>', '' %}
+                                        {% endif %}
+                                        {% if reported_by != "" %}
+                                            {% assign reported_by = reported_by | append: ', ' %}
+                                        {% endif %}
+                                        {% assign reported_by = reported_by | append: string | strip %}
+                                    {% endfor %}
+                                    <small>{{ reported_by }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% assign count = count | plus: 1 %}
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,14 @@
+---
+---
+# Private Inquiries forum (account required)
+Contact: https://community.mybb.com/forum-135.html
+
+Contact: mailto:security@mybb.com
+
+# Individual Team members' public keys
+Encryption: {{ site.mainsiteurl }}/about/team/
+
+Policy: {{ site.mainsiteurl }}/get-involved/security/
+Acknowledgments: {{ site.mainsiteurl }}/versions/security-issues/
+
+Canonical: {{ site.mainsiteurl }}/.well-known/security.txt
